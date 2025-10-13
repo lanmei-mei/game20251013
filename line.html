@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>十字キーで動く線</title>
+    <style>
+        /* キャンバスを見やすくするためのスタイル */
+        #gameCanvas {
+            border: 2px solid black;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <p>矢印キー（十字キー）を押して線（プレイヤー）を動かしてください。</p>
+
+    <script>
+        // キャンバスとコンテキストの取得
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 線の（プレイヤーの）初期位置と移動速度
+        let x = canvas.width / 2; // X座標 (中央)
+        let y = canvas.height / 2; // Y座標 (中央)
+        const speed = 5; // 移動速度（ピクセル/フレーム）
+        const lineLength = 20; // 線の長さ
+
+        // 線の描画関数
+        function drawLine() {
+            // 描画をクリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 線の描画設定
+            ctx.beginPath();
+            ctx.strokeStyle = 'blue'; // 線の色
+            ctx.lineWidth = 3; // 線の太さ
+
+            // 線を描画
+            // 線の中心が(x, y)になるように描画 (今回は水平な線)
+            ctx.moveTo(x - lineLength / 2, y);
+            ctx.lineTo(x + lineLength / 2, y);
+
+            ctx.stroke(); // 描画実行
+
+            // 線の中心に小さな点を描画（見やすくするためのおまけ）
+            ctx.fillStyle = 'red';
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // キーが押されている状態を追跡するマップ
+        const keys = {};
+
+        // キーダウンイベントリスナー
+        document.addEventListener('keydown', (e) => {
+            // 矢印キーが押されたらその状態をtrueにする
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                keys[e.key] = true;
+                e.preventDefault(); // スクロールなどブラウザのデフォルト動作を抑制
+            }
+        });
+
+        // キーアップイベントリスナー
+        document.addEventListener('keyup', (e) => {
+            // 矢印キーが離されたらその状態をfalseにする
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                keys[e.key] = false;
+            }
+        });
+
+        // 位置の更新関数
+        function update() {
+            // 上下左右の移動処理
+            if (keys['ArrowUp']) {
+                y -= speed;
+            }
+            if (keys['ArrowDown']) {
+                y += speed;
+            }
+            if (keys['ArrowLeft']) {
+                x -= speed;
+            }
+            if (keys['ArrowRight']) {
+                x += speed;
+            }
+
+            // 線の位置がキャンバスの境界を超えないように制限
+            // X座標の制限
+            x = Math.max(lineLength / 2, Math.min(x, canvas.width - lineLength / 2));
+            // Y座標の制限
+            y = Math.max(0, Math.min(y, canvas.height)); // 線の中心がキャンバス内に収まるように
+
+            // 再描画
+            drawLine();
+
+            // 次のフレームで再度 update 関数を呼び出す
+            requestAnimationFrame(update);
+        }
+
+        // ゲームループの開始
+        drawLine(); // 初回描画
+        requestAnimationFrame(update);
+    </script>
+
+</body>
+</html>
