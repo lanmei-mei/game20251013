@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ブロック崩しゲーム</title>
+    <style>
+        /* キャンバスを中央に配置 */
+        #gameCanvas {
+            border: 3px solid #333;
+            background-color: #f8f8ff;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+
+    <p style="text-align: center;">🎮 **操作方法:** 左右矢印キー、またはマウスでパドルを動かしてボールを打ち返してください。</p>
+
+    <script>
+        // --- 1. キャンバスとコンテキストの設定 ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // --- 2. ゲーム要素の初期設定 ---
+
+        // ボール
+        let ball = {
+            r: 8, // 半径
+            x: W / 2,
+            y: H - 30,
+            dx: 3, // X速度
+            dy: -3 // Y速度
+        };
+
+        // パドル
+        let paddle = {
+            h: 10,
+            w: 75,
+            x: (W - 75) / 2,
+            speed: 7
+        };
+
+        // ゲーム状態
+        let score = 0;
+        let lives = 3;
+        let running = false; // ゲームが実行中かどうか
+
+        // パドル制御フラグ
+        let rightPressed = false;
+        let leftPressed = false;
+
+        // ブロック設定
+        const brick = {
+            row: 3,
+            col: 5,
+            w: 75,
+            h: 20,
+            padding: 10,
+            topOffset: 30,
+            leftOffset: 30
+        };
+
+        let bricks = [];
+        initBricks();
+
+        function initBricks() {
+            for (let c = 0; c < brick.col; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brick.row; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 }; // status 1: 存在する
+                }
+            }
+        }
+
+        // --- 3. イベントリスナー（パドル操作） ---
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+        document.addEventListener("mousemove", mouseMoveHandler, false);
+
+        function keyDownHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = true;
+                running = true; // キー操作でゲーム開始
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = true;
+                running = true; // キー操作でゲーム開始
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = false;
+            }
+        }
+
+        function mouseMoveHandler(e) {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            
+            // パドルの中心がキャンバス内に収まるように制限
+            if (relativeX > paddle.w / 2 && relativeX < W - paddle.w / 2) {
+                paddle.x = relativeX - paddle.w / 2;
+                running = true; // マウス操作でゲーム開始
+            }
+        }
+
+        // --- 4. 描画関数 ---
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = "#FF4500"; // ボールを赤色に
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddle.x, H - paddle.h, paddle.w, paddle.h);
+            ctx.fillStyle = "#1E90FF"; // パドルを青色に
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBricks() {
+            for (let c = 0; c < brick.col; c++) {
+                for (let r = 0; r < brick.row; r++) {
+                    const b = bricks[c][r];
+                    if (b.status === 1) {
+                        // ブロックの位置計算
+                        b.x = (c * (brick.w + brick.padding)) + brick.leftOffset;
+                        b.y = (r * (brick.h + brick.padding)) + brick.topOffset;
+                        
+                        ctx.beginPath();
+                        ctx.rect(b.x, b.y, brick.w, brick.h);
+                        ctx.fillStyle = "#3CB371"; // ブロックを緑色に
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        function drawScore() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#333";
+            ctx.fillText("スコア: " + score, 8, 20);
+        }
+
+        function drawLives() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#333";
+            ctx.fillText("ライフ: " + lives, W -
