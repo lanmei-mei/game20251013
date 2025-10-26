@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>自動で動き回る画像</title>
+    <style>
+        /* 画面全体を覆うコンテナ（画像がこの範囲で動き回る） */
+        #container {
+            width: 100vw; /* ビューポート幅 */
+            height: 100vh; /* ビューポート高さ */
+            position: relative; /* 内部の要素（画像）を絶対配置するための基点 */
+            overflow: hidden; /* 画像が画面外に出ないように隠す */
+            background-color: #000033; /* スクリーセーバー風の背景色 */
+        }
+
+        /* 動き回る画像要素のスタイル */
+        #movingImage {
+            position: absolute; /* 親要素（container）を基準に配置 */
+            width: 100px; /* 画像の幅を固定 */
+            height: 100px; /* 画像の高さを固定 */
+            cursor: pointer; /* マウスオーバー時にカーソルを変更 */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <img id="movingImage" src="https://via.placeholder.com/100x100/FF5733/FFFFFF?text=MOVE" alt="Moving Image">
+    </div>
+
+    <script>
+        // --- 1. 要素と初期値の取得 ---
+        const image = document.getElementById('movingImage');
+        const container = document.getElementById('container');
+
+        // 画像の初期位置（画面中央付近）
+        let x = container.clientWidth / 2 - image.clientWidth / 2;
+        let y = container.clientHeight / 2 - image.clientHeight / 2;
+
+        // 画像の移動速度と方向
+        // 速度は毎フレームの移動ピクセル数です
+        let dx = 3; // X方向の速度
+        let dy = 3; // Y方向の速度
+
+        // --- 2. 座標とサイズの変数 ---
+        let imgWidth = image.clientWidth;
+        let imgHeight = image.clientHeight;
+        let containerWidth = container.clientWidth;
+        let containerHeight = container.clientHeight;
+
+        // --- 3. アニメーションループ ---
+
+        function animate() {
+            // コンテナと画像のサイズを再取得
+            // (ウィンドウサイズが変更された場合に対応するため)
+            containerWidth = container.clientWidth;
+            containerHeight = container.clientHeight;
+            imgWidth = image.clientWidth;
+            imgHeight = image.clientHeight;
+
+            // 1. 位置の更新
+            x += dx;
+            y += dy;
+
+            // 2. 境界チェックと跳ね返り
+            
+            // X方向のチェック
+            if (x + imgWidth > containerWidth || x < 0) {
+                dx = -dx; // 速度を反転
+                
+                // 境界を超えすぎないように位置を調整 (バグ防止)
+                if (x < 0) x = 0;
+                if (x + imgWidth > containerWidth) x = containerWidth - imgWidth;
+                
+                // お
