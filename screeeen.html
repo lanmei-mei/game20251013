@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>自動で動き回る画像（修正版）</title>
+    <style>
+        /* 画面全体を覆うコンテナ（画像がこの範囲で動き回る） */
+        #container {
+            width: 100vw; 
+            height: 100vh; 
+            position: relative; 
+            overflow: hidden; 
+            background-color: #000033; /* 背景色 */
+        }
+
+        /* 動き回る画像要素のスタイル */
+        #movingImage {
+            position: absolute; 
+            /* 注意: width/heightは必須です。このサイズで跳ね返り計算が行われます。 */
+            width: 100px; 
+            height: 100px; 
+            cursor: pointer; 
+            /* 画像が読み込まれる前に表示される色（デバッグ用） */
+            background-color: #FF5733; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <img id="movingImage" src="https://www.sozailab.jp/db_img/sozai/71020/797e0c1ece36100317b7796d6efdbc68.jpg" alt="Moving Image">
+    </div>
+
+    <script>
+        // --- 1. 要素の取得 ---
+        const image = document.getElementById('movingImage');
+        const container = document.getElementById('container');
+        
+        let x, y; // 画像の位置
+        let dx = 3; // X方向の速度
+        let dy = 3; // Y方向の速度
+
+        // --- 2. ウィンドウロード後に初期化関数を実行 ---
+        // これにより、画像とコンテナのサイズが確定してから計算が開始されます
+        window.addEventListener('load', initializeAnimation);
+
+        function initializeAnimation() {
+            // 初期サイズと位置の設定
+            const imgWidth = image.clientWidth;
+            const imgHeight = image.clientHeight;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // 初期位置をコンテナの中央に設定
+            x = containerWidth / 2 - imgWidth / 2;
+            y = containerHeight / 2 - imgHeight / 2;
+            
+            // 初期のCSS位置を設定
+            image.style.left = x + 'px';
+            image.style.top = y + 'px';
+
+            // アニメーションループを開始
+            requestAnimationFrame(animate);
+        }
+
+        // --- 3. アニメーションループ ---
+        function animate() {
+            // サイズをアニメーション中に再取得
+            const imgWidth = image.clientWidth;
+            const imgHeight = image.clientHeight;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // 1. 位置の更新
+            x += dx;
+            y += dy;
+
+            // 2. 境界チェックと跳ね返り
+            
+            // X方向のチェック
+            if (x + imgWidth > containerWidth || x < 0) {
+                dx = -dx; 
+                
+                // 境界を超えた場合の調整 (バグ防止)
+                if (x < 0) x = 0;
+                if (x + imgWidth > containerWidth) x = containerWidth - imgWidth;
+                
+                // おまけ: 色を変更
+                image.style.backgroundColor = getRandomColor();
+            }
+
+            // Y方向のチェック
+            if (y + imgHeight > containerHeight || y < 0) {
+                dy = -dy; 
+                
+                // 境界を超えた場合の調整 (バグ防止)
+                if (y < 0) y = 0;
+                if (y + imgHeight > containerHeight) y = containerHeight - imgHeight;
+
+                // おまけ: 色を変更
+                image.style.backgroundColor = getRandomColor();
+            }
+
+            // 3. CSSスタイルの適用
+            image.style.left = x + 'px';
+            image.style.top = y + 'px';
+
+            // 4. 次のフレームを要求
+            requestAnimationFrame(animate);
+        }
+
+        // ランダムな色を生成するヘルパー関数
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
+
+</body>
+</html>
