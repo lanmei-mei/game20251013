@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ブロック崩しゲーム</title>
+    <style>
+        /* キャンバスを中央に配置し、見やすくする */
+        #gameCanvas {
+            border: 3px solid #333;
+            background-color: #f8f8ff;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+
+    <p style="text-align: center;">🎮 **操作方法:** 左右矢印キー、またはマウスでパドルを動かしてボールを打ち返してください。</p>
+
+    <script>
+        // --- 1. キャンバス初期化 ---
+        const canvas = document.getElementById('gameCanvas');
+        // ブラウザがキャンバス要素をサポートしていない場合に備えてチェック
+        if (!canvas.getContext) {
+            alert('お使いのブラウザはHTML5 Canvasをサポートしていません。');
+        }
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // --- 2. ゲーム要素の定義 ---
+        let score = 0;
+        let lives = 3;
+        let running = false; // ゲームが実行中かどうか
+
+        // ボール
+        let ball = {
+            r: 8, // 半径
+            x: W / 2,
+            y: H - 30,
+            dx: 3, // X速度
+            dy: -3, // Y速度
+        };
+
+        // パドル
+        let paddle = {
+            h: 10,
+            w: 75,
+            x: (W - 75) / 2,
+            speed: 7
+        };
+
+        // ブロック設定
+        const brick = {
+            row: 3,
+            col: 5,
+            w: 75,
+            h: 20,
+            padding: 10,
+            topOffset: 30,
+            leftOffset: 30
+        };
+
+        let bricks = [];
+        initBricks();
+
+        function initBricks() {
+            for (let c = 0; c < brick.col; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brick.row; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
+                }
+            }
+        }
+
+        // --- 3. イベントと操作 ---
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = true;
+                running = true; 
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = true;
+                running = true;
+            }
+        }, false);
+
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = false;
+            }
+        }, false);
+
+        document.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            
+            if (relativeX > paddle.w / 2 && relativeX < W - paddle.w / 2) {
+                paddle.x = relativeX - paddle.w / 2;
+                running = true;
+            }
+        }, false);
+
+
+        // --- 4. 描画関数 ---
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = "#FF4500"; // 赤色
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBricks() {
+            for (let c = 0; c
